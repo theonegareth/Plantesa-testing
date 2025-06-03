@@ -7,18 +7,9 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 
+  <script src="firebase-config.js"></script>
+  
   <script>
-    const firebaseConfig = {
-    fetch('/firebase-config')
-      .then(response => response.json())
-      .then(config => {
-        firebase.initializeApp(config);
-      })
-      .catch(error => {
-        console.error('Error fetching Firebase configuration:', error);
-      });
-    };
-
     firebase.initializeApp(firebaseConfig);
 
     document.addEventListener('DOMContentLoaded', () => {
