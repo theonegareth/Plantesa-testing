@@ -6,53 +6,14 @@
   <title>Plantesa - Smart Plant Incubator</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 
   <script src="firebase-config.js"></script>
-  
-  <script>
-    firebase.initializeApp(firebaseConfig);
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const resultDiv = document.getElementById('latestResult');
-      const imgContainer = document.getElementById('latestImage');
-      const uploadTimeSpan = document.getElementById('uploadTime');
+  <script src="scripts/main.js"></script> 
 
-      resultDiv.textContent = 'Firebase initialized successfully!';
-      const storage = firebase.storage();
+  <script src="scripts/time.js"></script>
 
-      const specificImageRef = storage.refFromURL('https://firebasestorage.googleapis.com/v0/b/plantesa-c3798.firebasestorage.app/o/photos%2Fphoto_2025-06-01_20-44_brown_labeled.jpg?alt=media&token=8383da62-d06e-470c-95b1-5c8c00621f2c');
-      specificImageRef.getDownloadURL()
-        .then((url) => {
-          imgContainer.innerHTML = `<img src="${url}" alt="Specific labeled image" style="max-width:100%; height:auto;">`;
-          return specificImageRef.getMetadata();
-        })
-        .then((metadata) => {
-          const updated = new Date(metadata.updated);
-          const timeStr = updated.toLocaleString();
-          uploadTimeSpan.textContent = timeStr;
-        })
-        .catch((error) => {
-          console.error('Error loading specific image:', error);
-          imgContainer.textContent = 'Failed to load the specified image.';
-        });
-    });
-  </script>
-
-  <script>
-    function updateTime() {
-      const now = new Date();
-      const hours = String(now.getHours()).padStart(2, '0');
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      const formattedTime = `${hours}:${minutes}:${seconds}`;
-      document.getElementById('currentTime').textContent = formattedTime;
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      updateTime();
-      setInterval(updateTime, 1000);
-    });
-  </script>
 
   <style>
     body {
@@ -74,6 +35,11 @@
       padding: 5px;
       border-radius: 8px;
     }
+    .data {
+      font-size: 1.2rem;
+      color: #444;
+      margin-top: 1rem;
+    }
   </style>
 
 </head>
@@ -84,5 +50,7 @@
   <div class="time">Current Time: <span id="currentTime">--:--:--</span></div>
   <div class="time">Photo Upload Time: <span id="uploadTime">Loading...</span></div>
   <div class="image-container" id="latestImage">Loading specified image...</div>
+  <div class="data" id="condition">Condition: Loading...</div>
+  <div class="data" id="brownPercentage">Brown Percentage: Loading...</div>
 </body>
 </html>
