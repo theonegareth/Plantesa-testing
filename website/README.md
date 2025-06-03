@@ -1,3 +1,5 @@
+![Screenshot of the website](assets/Screenshot%202025-06-03%20213417.png)
+
 # Hosting with Firebase
 
 This project uses [Firebase Hosting](https://firebase.google.com/products/hosting) to deploy and serve the website.
