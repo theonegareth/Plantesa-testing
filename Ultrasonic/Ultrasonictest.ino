@@ -6,7 +6,7 @@
 HardwareSerial mySerial(2);
 
 void setup() {
-    Serial.begin(115200);  // Initialize Serial Monitor
+    Serial.begin(115200);  // Initi alize Serial Monitor
     mySerial.begin(9600, SERIAL_8N1, A02YYUW_RX, A02YYUW_TX);  // Initialize UART2
     Serial.println("A02YYUW Distance Sensor Example");
 }
