@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Plantesa - Smart Plant Incubator</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBxx9Ni57aDmUisdcPnaopCQVslvdmup-c",
+      authDomain: "plantesa-c3798.firebaseapp.com",
+      projectId: "plantesa-c3798",
+      storageBucket: "plantesa-c3798.appspot.com",
+      messagingSenderId: "685661980971",
+      appId: "1:685661980971:web:b0d334972f8ee29b51dd6e"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const resultDiv = document.getElementById('latestResult');
+      const imgContainer = document.getElementById('latestImage');
+      const uploadTimeSpan = document.getElementById('uploadTime');
+
+      resultDiv.textContent = 'Firebase initialized successfully!';
+      const storage = firebase.storage();
+
+      const specificImageRef = storage.refFromURL('https://firebasestorage.googleapis.com/v0/b/plantesa-c3798.firebasestorage.app/o/photos%2Fphoto_2025-06-01_20-44_brown_labeled.jpg?alt=media&token=8383da62-d06e-470c-95b1-5c8c00621f2c');
+      specificImageRef.getDownloadURL()
+        .then((url) => {
+          imgContainer.innerHTML = `<img src="${url}" alt="Specific labeled image" style="max-width:100%; height:auto;">`;
+          return specificImageRef.getMetadata();
+        })
+        .then((metadata) => {
+          const updated = new Date(metadata.updated);
+          const timeStr = updated.toLocaleString();
+          uploadTimeSpan.textContent = timeStr;
+        })
+        .catch((error) => {
+          console.error('Error loading specific image:', error);
+          imgContainer.textContent = 'Failed to load the specified image.';
+        });
+    });
+  </script>
+
+  <script>
+    function updateTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      const formattedTime = `${hours}:${minutes}:${seconds}`;
+      document.getElementById('currentTime').textContent = formattedTime;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      updateTime();
+      setInterval(updateTime, 1000);
+    });
+  </script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+    }
+    .result {
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 1rem;
+    }
+    .time {
+      font-size: 1.2rem;
+      color: #555;
+      margin-bottom: 1rem;
+    }
+    .image-container img {
+      border: 1px solid #ccc;
+      padding: 5px;
+      border-radius: 8px;
+    }
+  </style>
+
+</head>
+
+<body>
+  <h1>Plantesa - Smart Plant Incubator</h1>
+  <div class="result" id="latestResult">Connecting to Firebase...</div>
+  <div class="time">Current Time: <span id="currentTime">--:--:--</span></div>
+  <div class="time">Photo Upload Time: <span id="uploadTime">Loading...</span></div>
+  <div class="image-container" id="latestImage">Loading specified image...</div>
+</body>
+</html>
