@@ -9,12 +9,14 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyBxx9Ni57aDmUisdcPnaopCQVslvdmup-c",
-      authDomain: "plantesa-c3798.firebaseapp.com",
-      projectId: "plantesa-c3798",
-      storageBucket: "plantesa-c3798.appspot.com",
-      messagingSenderId: "685661980971",
-      appId: "1:685661980971:web:b0d334972f8ee29b51dd6e"
+    fetch('/firebase-config')
+      .then(response => response.json())
+      .then(config => {
+        firebase.initializeApp(config);
+      })
+      .catch(error => {
+        console.error('Error fetching Firebase configuration:', error);
+      });
     };
 
     firebase.initializeApp(firebaseConfig);
