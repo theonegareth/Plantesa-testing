@@ -1,24 +1,97 @@
-    body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
+body {
+  background: #f5f7fa;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  text-align: center;
+  margin-top: 30px;
+  color: #2d3a4b;
+}
+
+.result, .time {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 220px;
+  margin-bottom: 10px;
+  word-break: break-all;
+}
+
+.image-url {
+  font-size: 0.85em;
+  color: #888;
+  margin-bottom: 8px;
+  text-align: center;
+  max-width: 100%;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+}
+
+.plant-image {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(44,62,80,0.12);
+  background: #f8f8f8;
+  object-fit: contain;
+}
+
+.box {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+  margin: 24px auto;
+  max-width: 400px;
+  padding: 20px 30px;
+  transition: box-shadow 0.2s;
+}
+
+.box:hover {
+  box-shadow: 0 4px 16px rgba(44, 62, 80, 0.15);
+}
+
+.data {
+  margin: 8px 0;
+  font-size: 1.08em;
+}
+
+strong {
+  color: #1abc9c;
+  font-size: 1.1em;
+}
+
+@media (max-width: 600px) {
+    .box {
+        max-width: 98%;
+        padding: 14px 6px;
     }
-    .result {
-      font-size: 1.5rem;
-      color: #333;
-      margin-bottom: 1rem;
+
+    h1 {
+        font-size: 1.4em;
+        margin-top: 18px;
     }
-    .time {
-      font-size: 1.2rem;
-      color: #555;
-      margin-bottom: 1rem;
+
+    .plant-image {
+        max-width: 95vw;
+        border-radius: 6px;
     }
-    .image-container img {
-      border: 1px solid #ccc;
-      padding: 5px;
-      border-radius: 8px;
+
+    .image-container {
+        min-height: 120px;
+        margin-bottom: 6px;
     }
+
     .data {
-      font-size: 1.2rem;
-      color: #444;
-      margin-top: 1rem;
+        font-size: 1em;
     }
+}

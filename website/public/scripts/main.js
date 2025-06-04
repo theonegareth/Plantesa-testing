@@ -12,13 +12,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const database = firebase.database();
 
     // Listen for latest image URL in the database
+    const latestImageDiv = document.getElementById('latestImage');
+    if (latestImageDiv && imageUrl) {
+        latestImageDiv.innerHTML = `<img src="${imageUrl}" alt="Latest Plant Image" />`;
+    }
+
+    // Listen for latest image URL in the database
     const latestImageRef = database.ref('latest_image');
     latestImageRef.on('value', (snapshot) => {
         const url = snapshot.val();
         if (url) {
             console.log('latest_image URL from DB:', url); // Debug line
-            imgContainer.innerHTML = `<div style="word-break:break-all;font-size:0.9em;color:#888;">${url}</div>
-                <img src="${url}" alt="Latest image" style="max-width:100%; height:auto;">`;
+            imgContainer.innerHTML = `
+                <div class="image-url">${url}</div>
+                <img src="${url}" alt="Latest image" class="plant-image" />
+            `;
         } else {
             imgContainer.textContent = 'No image available.';
         }
@@ -28,30 +36,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const brownPercentageRef = database.ref('brown_spots_percentage');
     const conditionRef = database.ref('leaf_conditions');
     const labeledPhotosRef = database.ref('labeled_photos');
+    const imageUrlDiv = document.getElementById('imageUrl');
 
         labeledPhotosRef.on('value', (snapshot) => {
             const photos = snapshot.val();
             if (photos) {
-                const keys = Object.keys(photos);
-                // Sort by timestamp descending
-                keys.sort((a, b) => {
-                    const ta = photos[a].timestamp;
-                    const tb = photos[b].timestamp;
-                    return ta < tb ? 1 : -1;
-                });
-                const latest = photos[keys[0]];
-                if (latest.labeled_photo_url) {
-                    console.log('Using labeled_photo_url from labeled_photos:', latest.labeled_photo_url);
-                    imgContainer.innerHTML = `<div style="word-break:break-all;font-size:0.9em;color:#888;">${latest.labeled_photo_url}</div>
-                        <img src="${latest.labeled_photo_url}" alt="Latest labeled image" style="max-width:100%; height:auto;">`;
-                    uploadTimeSpan.textContent = latest.timestamp || 'Unknown';
-                } else {
-                    imgContainer.textContent = 'No labeled image available.';
-                    uploadTimeSpan.textContent = 'Unknown';
-                }
+            const keys = Object.keys(photos);
+            keys.sort((a, b) => {
+                const ta = photos[a].timestamp;
+                const tb = photos[b].timestamp;
+                return ta < tb ? 1 : -1;
+            });
+            const latest = photos[keys[0]];
+            if (latest.labeled_photo_url) {
+                imgContainer.innerHTML = `
+                <img src="${latest.labeled_photo_url}" alt="Latest labeled image" class="plant-image" />`;
+                imageUrlDiv.textContent = latest.labeled_photo_url;
+                uploadTimeSpan.textContent = latest.timestamp || 'Unknown';
             } else {
                 imgContainer.textContent = 'No labeled image available.';
+                imageUrlDiv.textContent = '';
                 uploadTimeSpan.textContent = 'Unknown';
+            }
+            } else {
+            imgContainer.textContent = 'No labeled image available.';
+            imageUrlDiv.textContent = '';
+            uploadTimeSpan.textContent = 'Unknown';
             }
         });
 

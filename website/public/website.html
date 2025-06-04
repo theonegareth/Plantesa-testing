@@ -19,44 +19,68 @@
 </head>
 
 <body>
+  <!-- Main Title -->
   <h1>Plantesa - Smart Plant Incubator</h1>
+  
+  <!-- Firebase Connection Status -->
   <div class="result" id="latestResult">Connecting to Firebase...</div>
-  <!-- Current Time -->
-  <!-- Display current time, takes the system time -->
+  
+  <!-- Current Time Display -->
   <div class="time">Current Time: <span id="currentTime">--:--:--</span></div>
 
-  <!-- Photo Upload Time -->
-  <!-- Display the time when the latest photo was uploaded -->
-  <div class="time">Photo Upload Time: <span id="uploadTime">Loading...</span></div>
+  <!-- Latest Image Display in a box -->
+  <div class="box">
+    <div class="data"><strong>Latest Plant Image</strong></div>
+    <div class="time">Photo Upload Time: <span id="uploadTime">Loading...</span></div>
+    <div class="image-container" id="latestImage">Loading specified image...</div>
+  </div>
+  <div id="imageUrl" class="image-url" style="text-align:center; margin-bottom: 16px;"></div>
 
-  <!-- Latest Image -->
-  <div class="image-container" id="latestImage">Loading specified image...</div>
+  <!-- Plant Condition and Brown Percentage -->
+  <div class="box">
+    <div class="data" id="condition">Condition: Loading...</div>
+    <div class="data" id="brownPercentage">Brown Percentage: Loading...</div>
+  </div>
 
-  <!-- Condition from latest image -->
-  <div class="data" id="condition">Condition: Loading...</div>
-  <div class="data" id="brownPercentage">Brown Percentage: Loading...</div>
+  <!-- SHD Sensor Data -->
+  <div class="box">
+    <div class="data"><strong>SHD Sensor</strong></div>
+    <div class="data" id="humidity">Humidity: Loading...</div>
+    <div class="data" id="temperature">Temperature: Loading...</div>
+  </div>
 
-  <!-- SHD Sensor -->
-  <div class="data"><strong>SHD Sensor</strong></div>
-  <div class="data" id="humidity">Humidity: Loading...</div>
-  <div class="data" id="temperature">Temperature: Loading...</div>
+  <!-- Moisture Sensor Data -->
+  <div class="box">
+    <div class="data"><strong>Moisture Sensor</strong></div>
+    <div class="data" id="moisture">Moisture: Loading...</div>
+  </div>
 
-  <div class="data"><strong>Moisture Sensor</strong></div>
-  <div class="data" id="moisture">Moisture: Loading...</div>
+  <!-- NPK Sensor Data -->
+  <div class="box">
+    <div class="data"><strong>NPK Sensor</strong></div>
+    <div class="data" id="npkN">Natrium: Loading...</div>
+    <div class="data" id="npkP">Phosphorus: Loading...</div>
+    <div class="data" id="npkK">Kalium: Loading...</div>
+  </div>
 
-  <div class="data"><strong>NPK Sensor</strong></div>
-  <div class="data" id="npkN">Natrium: Loading...</div>
-  <div class="data" id="npkP">Phosphorus: Loading...</div>
-  <div class="data" id="npkK">Kalium: Loading...</div>
+  <!-- Ultrasonic Sensor Data -->
+  <div class="box">
+    <div class="data"><strong>Ultrasonic Sensor</strong></div>
+    <div class="data" id="waterLevel">Water Level in Tank: Loading...</div>
+    <div class="data" id="nextFillUp">Next Fill Up Estimation: Loading...</div>
+  </div>
 
-  <div class="data"><strong>Ultrasonic Sensor</strong></div>
-  <div class="data" id="waterLevel">Water Level in Tank: Loading...</div>
-  <div class="data" id="nextFillUp">Next Fill Up Estimation: Loading...</div>
+  <!-- Camera Data -->
+  <div class="box">
+    <div class="data"><strong>Camera</strong></div>
+    <div class="data" id="nextPicture">Next Picture Estimation: Loading...</div>
+  </div>
 
-  <div class="data"><strong>Camera</strong></div>
-  <div class="data" id="nextPicture">Next Picture Estimation: Loading...</div>
-
-  <div class="data"><strong>Pump</strong></div>
-  <div class="data" id="pumpStatus">Pump Status: Loading...</div>
+  <!-- Pump Status -->
+  <div class="box">
+    <div class="data"><strong>Pump</strong></div>
+    <div class="data" id="pumpStatus">Pump Status: Loading...</div>
+  </div>
 </body>
+
 </html>
