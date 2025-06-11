@@ -14,14 +14,14 @@
 #include "addons/RTDBHelper.h"
 
 // WiFi credentials
-#define WIFI_SSID "HGG22 (2G)"
-#define WIFI_PASSWORD "JPilot123"
+#define WIFI_SSID "YOUR_WIFI_SSID"
+#define WIFI_PASSWORD "YOUR_WIFI_PASSWORD"
 
 // Firebase project credentials
-#define API_KEY "AIzaSyBxx9Ni57aDmUisdcPnaopCQVslvdmup-c"
-#define USER_EMAIL "theonegareth@gmail.com"
-#define USER_PASSWORD "adminadmin"
-#define DATABASE_URL "https://plantesa-c3798-default-rtdb.asia-southeast1.firebasedatabase.app/"
+#define API_KEY "YOUR_FIREBASE_API_KEY"
+#define USER_EMAIL "YOUR_FIREBASE_USER_EMAIL"
+#define USER_PASSWORD "YOUR_FIREBASE_USER_PASSWORD"
+#define DATABASE_URL "YOUR_FIREBASE_DATABASE_URL"
 
 // Firebase objects
 FirebaseData fbdo;
