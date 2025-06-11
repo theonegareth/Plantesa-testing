@@ -1,12 +1,12 @@
 // Define ESP32 hardware serial port for the A02YYUW sensor
-#define A02YYUW_TX 5  // ESP32 TX connected to Sensor RX
-#define A02YYUW_RX 18  // ESP32 RX connected to Sensor TX
+#define A02YYUW_TX 17  // ESP32 TX connected to Sensor RX
+#define A02YYUW_RX 16  // ESP32 RX connected to Sensor TX
 
 // Initialize hardware serial for A02YYUW
 HardwareSerial mySerial(2);
 
 void setup() {
-    Serial.begin(115200);  // Initi alize Serial Monitor
+    Serial.begin(115200);  // Initialize Serial Monitor
     mySerial.begin(9600, SERIAL_8N1, A02YYUW_RX, A02YYUW_TX);  // Initialize UART2
     Serial.println("A02YYUW Distance Sensor Example");
 }
