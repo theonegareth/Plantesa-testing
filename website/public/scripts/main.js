@@ -116,8 +116,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             humidityDiv.textContent = `Humidity: ${latest.humidity !== undefined ? latest.humidity + '%' : '--'}`;
             temperatureDiv.textContent = `Temperature: ${latest.temperature !== undefined ? latest.temperature + '°C' : '--'}`;
-            moistureDiv.textContent = `Soil Moisture: ${latest.soil_moisture !== undefined ? latest.soil_moisture + '%' : '--'}`;
-            
+            moistureDiv.textContent = `Soil Moisture: ${latest.moisture !== undefined ? latest.moisture + '%' : '--'}`;
+
             natriumDiv.textContent = `Natrium: ${latest.natrium !== undefined ? latest.natrium : '--'}`;
             phosporusDiv.textContent = `Phosphorus: ${latest.phosphorus !== undefined ? latest.phosphorus : '--'}`; // match spelling
             kaliumDiv.textContent = `Kalium: ${latest.kalium !== undefined ? latest.kalium : '--'}`;
