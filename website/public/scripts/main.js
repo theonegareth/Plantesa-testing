@@ -97,4 +97,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 brownPercentageDiv.textContent = 'Brown Percentage: --';
             }
         });
+
+    // Listen for temperature, humidity, and soil moisture sensors
+    const humidityDiv = document.getElementById('humidity');
+    const temperatureDiv = document.getElementById('temperature');
+    const moistureDiv = document.getElementById('moisture');
+    const natriumDiv = document.getElementById('natrium');
+    const phosporusDiv = document.getElementById('phosporus'); // update HTML id to 'phosphorus' if you want to match Arduino
+    const kaliumDiv = document.getElementById('kalium');
+    const waterDiv = document.getElementById('water'); // or 'waterLevel' if that's your HTML id
+
+    const usersDataRef = database.ref('SensorsData');
+    usersDataRef.on('value', (snapshot) => {
+        const users = snapshot.val();
+        if (users) {
+            const keys = Object.keys(users);
+            const latest = users[keys[keys.length - 1]];
+
+            humidityDiv.textContent = `Humidity: ${latest.humidity !== undefined ? latest.humidity + '%' : '--'}`;
+            temperatureDiv.textContent = `Temperature: ${latest.temperature !== undefined ? latest.temperature + '°C' : '--'}`;
+            moistureDiv.textContent = `Soil Moisture: ${latest.soil_moisture !== undefined ? latest.soil_moisture + '%' : '--'}`;
+            
+            natriumDiv.textContent = `Natrium: ${latest.natrium !== undefined ? latest.natrium : '--'}`;
+            phosporusDiv.textContent = `Phosphorus: ${latest.phosphorus !== undefined ? latest.phosphorus : '--'}`; // match spelling
+            kaliumDiv.textContent = `Kalium: ${latest.kalium !== undefined ? latest.kalium : '--'}`;
+
+            waterDiv.textContent = `Water Level: ${latest.waterlevel !== undefined ? latest.waterlevel : '--'}`;
+        } else {
+            humidityDiv.textContent = 'Humidity: --';
+            temperatureDiv.textContent = 'Temperature: --';
+            moistureDiv.textContent = 'Soil Moisture: --';
+
+            natriumDiv.textContent = 'Natrium: --';
+            phosporusDiv.textContent = 'Phosphorus: --';
+            kaliumDiv.textContent = 'Kalium: --';
+
+            waterDiv.textContent = 'Water Level: --';
+        }
+    });
 });
