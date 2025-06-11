@@ -98,6 +98,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+    const nextEstimateSpan = document.getElementById('nextEstimate');
+    const nextPhotoEstimateRef = database.ref('next_photo_estimate');
+    nextPhotoEstimateRef.on('value', (snapshot) => {
+        const estimates = snapshot.val();
+        if (estimates) {
+            // Get the latest estimate by sorting keys by timestamp
+            const keys = Object.keys(estimates);
+            keys.sort((a, b) => {
+                const ta = estimates[a].timestamp;
+                const tb = estimates[b].timestamp;
+                return ta < tb ? 1 : -1;
+            });
+            const latest = estimates[keys[0]];
+            nextEstimateSpan.textContent = `Next Estimated Picture: ${latest.next_estimated_time || '--'}`;
+        } else {
+            nextEstimateSpan.textContent = 'Next Estimated Picture: --';
+        }
+    });
+
     // Listen for temperature, humidity, and soil moisture sensors
     const humidityDiv = document.getElementById('humidity');
     const temperatureDiv = document.getElementById('temperature');
