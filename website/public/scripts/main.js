@@ -154,4 +154,53 @@ document.addEventListener('DOMContentLoaded', () => {
             waterDiv.textContent = 'Water Level: --';
         }
     });
+
+
+    const waterLevelPercentageDiv = document.getElementById('waterLevelPercentage');
+    const estimatedRefillDiv = document.getElementById('estimatedRefill');
+
+    // Listen for water level percentage
+    const waterLevelPercentageRef = database.ref('waterlevel_percentage');
+    waterLevelPercentageRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            const keys = Object.keys(data);
+            keys.sort((a, b) => {
+                const ta = data[a].timestamp;
+                const tb = data[b].timestamp;
+                return ta < tb ? 1 : -1;
+            });
+            const latest = data[keys[0]];
+            waterLevelPercentageDiv.textContent = `Water Level Percentage: ${latest.waterlevel_percentage !== undefined ? latest.waterlevel_percentage + '%' : '--'} (${latest.timestamp || '--'})`;
+        } else {
+            waterLevelPercentageDiv.textContent = 'Water Level Percentage: --';
+        }
+    });
+    
+    // Listen for estimated refill time
+    const estimatedRefillRef = database.ref('estimated_refill_time');
+    estimatedRefillRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            const keys = Object.keys(data);
+            keys.sort((a, b) => {
+                const ta = data[a].timestamp;
+                const tb = data[b].timestamp;
+                return ta < tb ? 1 : -1;
+            });
+            const latest = data[keys[0]];
+            if (latest.estimated_refill_time !== undefined) {
+                const totalMinutes = latest.estimated_refill_time;
+                const days = Math.floor(totalMinutes / (24 * 60));
+                const remainingMinutesAfterDays = totalMinutes % (24 * 60);
+                const hours = Math.floor(remainingMinutesAfterDays / 60);
+                const minutes = remainingMinutesAfterDays % 60;
+                estimatedRefillDiv.textContent = `Estimated Refill Time: ${days}d ${hours}h ${minutes}m (${latest.timestamp || '--'})`;
+            } else {
+                estimatedRefillDiv.textContent = 'Estimated Refill Time: --';
+            }
+        } else {
+            estimatedRefillDiv.textContent = 'Estimated Refill Time: --';
+        }
+    });
 });
