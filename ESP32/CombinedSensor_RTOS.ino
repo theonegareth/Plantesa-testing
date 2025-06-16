@@ -1,6 +1,5 @@
 #include "DFRobot_SHT40.h"
 #include <Arduino.h>
-#include <SoftwareSerial.h>
 #include <Wire.h>
 
 // --- Pin definitions ---
@@ -13,10 +12,9 @@ const int AirValue = 300;
 const int WaterValue = 0;    
 const int SensorPin = 15;
 
-// NPK sensor (Modbus-RTU over RS-485)
-#define RE 8  
-#define DE 7  
-SoftwareSerial mod(2, 3);  // RX, TX
+// NPK sensor (Modbus-RTU over RS-485 auto-direction)
+// Use Serial2 (UART2) mapped to GPIO4 (RX) and GPIO5 (TX)
+HardwareSerial modbusSerial(2);
 
 // -- Modbus commands for N, P, K (each 8 bytes) --
 const byte nitroCmd[] = {0x01, 0x03, 0x00, 0x1e, 0x00, 0x01, 0xe4, 0x0c};
@@ -24,7 +22,7 @@ const byte phosCmd[]  = {0x01, 0x03, 0x00, 0x1f, 0x00, 0x01, 0xb5, 0xcc};
 const byte potaCmd[]  = {0x01, 0x03, 0x00, 0x20, 0x00, 0x01, 0x85, 0xc0};
 
 // Create UART2 for ultrasonic
-HardwareSerial mySerial(2);
+HardwareSerial ultraSerial(2);
 
 // SHT40
 DFRobot_SHT40 SHT40(SHT40_AD1B_IIC_ADDR);
@@ -34,34 +32,32 @@ float temperature = 0.0, humidity = 0.0;
 int soilMoisturePercent = 0;
 
 // --- Utility to send a Modbus query and parse a 16-bit response ---
-uint16_t read_npk(const byte* cmd) {
-  // Enable RS-485 driver
-  digitalWrite(DE, HIGH);
-  digitalWrite(RE, HIGH);
-  delay(10);
-
-  mod.write(cmd, 8);
-  delay(10);
-
-  digitalWrite(DE, LOW);
-  digitalWrite(RE, LOW);
+uint16_t read_npk(const byte* command) {
+  modbusSerial.flush();           // Clear any outgoing data
+  modbusSerial.write(command, 8); // Send Modbus command
+  delay(10);                      // Short wait for response
 
   unsigned long start = millis();
-  while (mod.available() < 7) {
+  while (modbusSerial.available() < 7) {
     if (millis() - start > 2000) {
-      Serial.println("[NPK] Timeout waiting for response");
+      Serial.println("[NPK] Timeout! No data received.");
       return 0xFFFF;
     }
-    delay(5);
+    delay(10);
   }
 
-  byte resp[7];
-  for (int i = 0; i < 7; i++) resp[i] = mod.read();
+  byte response[7];
+  for (int i = 0; i < 7; i++) response[i] = modbusSerial.read();
 
-  // Check CRC or length here if desired...
+  // Debug print response bytes
+  Serial.print("[NPK] Response: ");
+  for (int i = 0; i < 7; i++) {
+    Serial.printf("%02X ", response[i]);
+  }
+  Serial.println();
 
-  // Bytes 3 & 4 = data
-  uint16_t value = (resp[3] << 8) | resp[4];
+  // Combine high and low bytes
+  uint16_t value = (response[3] << 8) | response[4];
   return value;
 }
 
@@ -92,7 +88,6 @@ void shtTask(void* pv) {
     else
       Serial.printf("[SHT40] Humidity: %.2f %%RH\n", humidity);
 
-    // Auto‐heater if very humid
     if (humidity > 80)
       SHT40.enHeater(POWER_CONSUMPTION_H_HEATER_1S);
 
@@ -103,10 +98,10 @@ void shtTask(void* pv) {
 // --- Task 3: Ultrasonic water-level ---
 void ultrasonicTask(void* pv) {
   while (1) {
-    if (mySerial.available() >= 4) {
+    if (ultraSerial.available() >= 4) {
       uint8_t d[4];
-      for (int i = 0; i < 4; i++) d[i] = mySerial.read();
-      if (d[0] == 0xFF && (((d[0]+d[1]+d[2]) & 0xFF) == d[3])) {
+      for (int i = 0; i < 4; i++) d[i] = ultraSerial.read();
+      if (d[0] == 0xFF && (((d[0] + d[1] + d[2]) & 0xFF) == d[3])) {
         int dist = (d[1] << 8) | d[2];
         if (dist > 30)
           Serial.printf("[Ultrasonic] %.1f cm\n", dist / 10.0);
@@ -140,17 +135,13 @@ void setup() {
   Serial.begin(115200);
 
   // --- Init sensors & comms ---
-  mySerial.begin(9600, SERIAL_8N1, A02YYUW_RX, A02YYUW_TX);
+  ultraSerial.begin(9600, SERIAL_8N1, A02YYUW_RX, A02YYUW_TX);
   SHT40.begin();
   uint32_t id = SHT40.getDeviceID();
   Serial.printf("SHT40 ID: 0x%08X\n", id);
 
-  // NPK RS-485 pins
-  pinMode(RE, OUTPUT);
-  pinMode(DE, OUTPUT);
-  digitalWrite(RE, LOW);
-  digitalWrite(DE, LOW);
-  mod.begin(4800);
+  // NPK RS-485 (auto-direction)
+  modbusSerial.begin(4800, SERIAL_8N1, 4, 5);
 
   // --- Create FreeRTOS tasks ---
   xTaskCreate(moistureTask,    "Moisture", 2048, NULL, 1, NULL);
