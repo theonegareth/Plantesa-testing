@@ -10,7 +10,7 @@
 #include "addons/TokenHelper.h"
 #include "addons/RTDBHelper.h"
 #include "DFRobot_SHT40.h"
-#include <SoftwareSerial.h>
+#include <Wire.h>
 
 // ——— WiFi & Firebase credentials ————————————————————————
 #define WIFI_SSID       "YOUR_WIFI_SSID"
@@ -39,24 +39,24 @@ float waterLevel  = 0.0;
 unsigned long lastSend = 0;
 const unsigned long sendInterval = 180000; // 3 minutes
 
-// ——— Pins & Constants ——————————————————————————
+// ——— Pins & Constants —————————————————————————
 // Soil moisture
 const int AirValue   = 300;
 const int WaterValue =   0;
 const int SensorPin  = 15;
 
 // SHT40
-DFRobot_SHT40 sht40(SHT40_AD1B_IIC_ADDR);
+dfrobot_sht40 SHT40(SHT40_AD1B_IIC_ADDR);
 
 // Ultrasonic (A02YYUW) on UART2
 #define U_TX 17
 #define U_RX 16
-HardwareSerial mySerial(2);
+HardwareSerial ultraSerial(2);
 
-// NPK (RS-485 Modbus)
-#define RE_PIN 8
+// NPK (RS-485 Modbus) on UART1 with auto-direction
 #define DE_PIN 7
-SoftwareSerial modbusSer(2, 3); // RX, TX
+#define RE_PIN 8
+HardwareSerial modbusSerial(1);
 const byte nitroCmd[] = {0x01,0x03,0x00,0x1e,0x00,0x01,0xe4,0x0c};
 const byte phosCmd[]  = {0x01,0x03,0x00,0x1f,0x00,0x01,0xb5,0xcc};
 const byte potaCmd[]  = {0x01,0x03,0x00,0x20,0x00,0x01,0x85,0xc0};
@@ -76,31 +76,31 @@ bool sendFloat(const String &path, float val) {
   if (Firebase.RTDB.setFloat(&fbdo, path, val)) {
     Serial.printf("→ %s = %.2f\n", path.c_str(), val);
     return true;
-  }
-  else {
-    Serial.printf("! Failed %s: %s\n",
-                  path.c_str(),
-                  fbdo.errorReason().c_str());
+  } else {
+    Serial.printf("! Failed %s: %s\n", path.c_str(), fbdo.errorReason().c_str());
     return false;
   }
 }
 
 uint16_t readModbus(const byte *cmd) {
+  // Enable driver
   digitalWrite(DE_PIN, HIGH);
   digitalWrite(RE_PIN, HIGH);
   delay(5);
-  modbusSer.write(cmd, 8);
+  modbusSerial.write(cmd, 8);
   delay(5);
   digitalWrite(DE_PIN, LOW);
   digitalWrite(RE_PIN, LOW);
 
   unsigned long start = millis();
-  while (modbusSer.available() < 7) {
+  while (modbusSerial.available() < 7) {
     if (millis() - start > 1000) return 0xFFFF;
+    delay(5);
   }
+
   byte buf[7];
-  for (uint8_t i=0; i<7; i++) buf[i] = modbusSer.read();
-  return (uint16_t)(buf[3] << 8) | buf[4];
+  for (uint8_t i = 0; i < 7; i++) buf[i] = modbusSerial.read();
+  return (uint16_t)((buf[3] << 8) | buf[4]);
 }
 
 // ——— Tasks ————————————————————————————————————
@@ -115,25 +115,24 @@ void moistureTask(void*) {
 
 void shtTask(void*) {
   while (1) {
-    float t = sht40.getTemperature(PRECISION_HIGH);
-    float h = sht40.getHumidity   (PRECISION_HIGH);
+    float t = SHT40.getTemperature(PRECISION_HIGH);
+    float h = SHT40.getHumidity(PRECISION_HIGH);
     if (t != MODE_ERR) temperature = t;
     if (h != MODE_ERR) humidity    = h;
-    if (humidity > 80)               // heater if very humid
-      sht40.enHeater(POWER_CONSUMPTION_H_HEATER_1S);
+    if (humidity > 80)
+      SHT40.enHeater(POWER_CONSUMPTION_H_HEATER_1S);
     vTaskDelay(pdMS_TO_TICKS(2000));
   }
 }
 
 void ultrasonicTask(void*) {
   while (1) {
-    if (mySerial.available() >= 4) {
+    if (ultraSerial.available() >= 4) {
       uint8_t d[4];
-      for (uint8_t i=0; i<4; i++) d[i] = mySerial.read();
-      if (d[0]==0xFF && (((d[0]+d[1]+d[2]) & 0xFF)==d[3])) {
-        int cm10 = (d[1]<<8) | d[2];
-        float cm  = cm10 / 10.0;
-        waterLevel = (cm > 3.0) ? cm : 0.0;
+      for (uint8_t i = 0; i < 4; i++) d[i] = ultraSerial.read();
+      if (d[0] == 0xFF && (((d[0] + d[1] + d[2]) & 0xFF) == d[3])) {
+        int cm10 = (d[1] << 8) | d[2];
+        waterLevel = (cm10 / 10.0 > 3.0) ? cm10 / 10.0 : 0.0;
       }
     }
     vTaskDelay(pdMS_TO_TICKS(500));
@@ -158,32 +157,28 @@ void setup() {
   initWiFi();
 
   // Firebase
-  config.api_key            = API_KEY;
-  config.database_url       = DATABASE_URL;
-  auth.user.email           = USER_EMAIL;
-  auth.user.password        = USER_PASSWORD;
-  config.token_status_callback = tokenStatusCallback;
+  config.api_key                 = API_KEY;
+  config.database_url            = DATABASE_URL;
+  auth.user.email                = USER_EMAIL;
+  auth.user.password             = USER_PASSWORD;
+  config.token_status_callback   = tokenStatusCallback;
   Firebase.begin(&config, &auth);
   Firebase.reconnectWiFi(true);
   fbdo.setResponseSize(4096);
 
-  // wait for UID
   Serial.print("Waiting for UID");
-  while (auth.token.uid == "") {
-    Serial.print(".");
-    delay(500);
-  }
+  while (auth.token.uid == "") { Serial.print("."); delay(500); }
   uid      = auth.token.uid.c_str();
   basePath = "/SensorsData/" + uid + "/";
 
   // init sensors & comms
-  sht40.begin();
-  mySerial.begin(9600, SERIAL_8N1, U_RX, U_TX);
+  SHT40.begin();
+  ultraSerial.begin(9600, SERIAL_8N1, U_RX, U_TX);
   pinMode(DE_PIN, OUTPUT);
   pinMode(RE_PIN, OUTPUT);
   digitalWrite(DE_PIN, LOW);
   digitalWrite(RE_PIN, LOW);
-  modbusSer.begin(4800);
+  modbusSerial.begin(4800, SERIAL_8N1, /*RX*/2, /*TX*/3);
 
   // spawn FreeRTOS tasks
   xTaskCreate(moistureTask,   "Moisture",   2048, NULL, 1, NULL);
