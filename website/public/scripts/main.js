@@ -203,4 +203,39 @@ document.addEventListener('DOMContentLoaded', () => {
             estimatedRefillDiv.textContent = 'Estimated Refill Time: --';
         }
     });
+    
+    const pump1Div = document.getElementById('pump1');
+    const pump2Div = document.getElementById('pump2');
+    const pump3Div = document.getElementById('pump3');
+    const lightStatusDiv = document.getElementById('lightStatus');
+    const fanStatusDiv = document.getElementById('fanStatus');
+
+    // Listen for pump status
+    const pumpStatusRef = database.ref('pump_status');
+    pumpStatusRef.on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            pump1Div.textContent = `Pump 1 Status: ${data.pump1 !== undefined ? data.pump1 : '--'}`;
+            pump2Div.textContent = `Pump 2 Status: ${data.pump2 !== undefined ? data.pump2 : '--'}`;
+            pump3Div.textContent = `Pump 3 Status: ${data.pump3 !== undefined ? data.pump3 : '--'}`;
+        } else {
+            pump1Div.textContent = 'Pump 1 Status: --';
+            pump2Div.textContent = 'Pump 2 Status: --';
+            pump3Div.textContent = 'Pump 3 Status: --';
+        }
+    });
+
+    // Listen for light status
+    const lightStatusRef = database.ref('light_status');
+    lightStatusRef.on('value', (snapshot) => {
+        const status = snapshot.val();
+        lightStatusDiv.textContent = `Light Status: ${status !== undefined ? status : '--'}`;
+    });
+
+    // Listen for fan status
+    const fanStatusRef = database.ref('fan_status');
+    fanStatusRef.on('value', (snapshot) => {
+        const status = snapshot.val();
+        fanStatusDiv.textContent = `Fan Status: ${status !== undefined ? status : '--'}`;
+    });
 });
