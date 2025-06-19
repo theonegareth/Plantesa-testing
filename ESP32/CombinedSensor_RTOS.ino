@@ -153,10 +153,12 @@ void waterLevelTask(void* pv) {
     if (rawLevel > maxValue) rawLevel = maxValue;
 
     int percentLevel = (rawLevel * 100) / maxValue;
-    Serial.printf("[Water Level] %d %%\n", percentLevel);
+    // Print raw value and percentage
+    Serial.printf("[Water Level] Raw: %4d  |  %3d %%\n", rawLevel, percentLevel);
 
-    if (percentLevel >= 100)
+    if (percentLevel >= 100) {
       Serial.println("[Water Level] ⚠️ WARNING: Water level FULL!");
+    }
 
     vTaskDelay(pdMS_TO_TICKS(1000));
   }
