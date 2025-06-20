@@ -12,17 +12,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const database = firebase.database();
 
     // Listen for latest image URL in the database
-    const latestImageDiv = document.getElementById('latestImage');
-    if (latestImageDiv && imageUrl) {
-        latestImageDiv.innerHTML = `<img src="${imageUrl}" alt="Latest Plant Image" />`;
-    }
-
-    // Listen for latest image URL in the database
     const latestImageRef = database.ref('latest_image');
     latestImageRef.on('value', (snapshot) => {
         const url = snapshot.val();
         if (url) {
-            console.log('latest_image URL from DB:', url); // Debug line
             imgContainer.innerHTML = `
                 <div class="image-url">${url}</div>
                 <img src="${url}" alt="Latest image" class="plant-image" />
@@ -38,15 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const labeledPhotosRef = database.ref('labeled_photos');
     const imageUrlDiv = document.getElementById('imageUrl');
 
-        labeledPhotosRef.on('value', (snapshot) => {
-            const photos = snapshot.val();
-            if (photos) {
+    labeledPhotosRef.on('value', (snapshot) => {
+        const photos = snapshot.val();
+        if (photos) {
             const keys = Object.keys(photos);
-            keys.sort((a, b) => {
-                const ta = photos[a].timestamp;
-                const tb = photos[b].timestamp;
-                return ta < tb ? 1 : -1;
-            });
+            keys.sort((a, b) => photos[b].timestamp - photos[a].timestamp);
             const latest = photos[keys[0]];
             if (latest.labeled_photo_url) {
                 imgContainer.innerHTML = `
@@ -58,58 +47,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 imageUrlDiv.textContent = '';
                 uploadTimeSpan.textContent = 'Unknown';
             }
-            } else {
+        } else {
             imgContainer.textContent = 'No labeled image available.';
             imageUrlDiv.textContent = '';
             uploadTimeSpan.textContent = 'Unknown';
-            }
-        });
+        }
+    });
 
-        conditionRef.on('value', (snapshot) => {
-            const conditions = snapshot.val();
-            if (conditions) {
-                const keys = Object.keys(conditions);
-                // Sort by timestamp descending
-                keys.sort((a, b) => {
-                    const ta = conditions[a].timestamp;
-                    const tb = conditions[b].timestamp;
-                    return ta < tb ? 1 : -1;
-                });
-                const latest = conditions[keys[0]];
-                conditionDiv.textContent = `Condition: ${latest.predicted_condition} (${latest.timestamp})`;
-            } else {
-                conditionDiv.textContent = 'Condition: --';
-            }
-        });
+    conditionRef.on('value', (snapshot) => {
+        const conditions = snapshot.val();
+        if (conditions) {
+            const keys = Object.keys(conditions);
+            keys.sort((a, b) => conditions[b].timestamp - conditions[a].timestamp);
+            const latest = conditions[keys[0]];
+            conditionDiv.textContent = `Condition: ${latest.predicted_condition} (${latest.timestamp})`;
+        } else {
+            conditionDiv.textContent = 'Condition: --';
+        }
+    });
 
-        brownPercentageRef.on('value', (snapshot) => {
-            const brownPercentages = snapshot.val();
-            if (brownPercentages) {
-                const keys = Object.keys(brownPercentages);
-                keys.sort((a, b) => {
-                    const ta = brownPercentages[a].timestamp;
-                    const tb = brownPercentages[b].timestamp;
-                    return ta < tb ? 1 : -1;
-                });
-                const latest = brownPercentages[keys[0]];
-                brownPercentageDiv.textContent = `Brown Percentage: ${latest.brown_percentage.toFixed(2)}% (${latest.timestamp})`;
-            } else {
-                brownPercentageDiv.textContent = 'Brown Percentage: --';
-            }
-        });
+    brownPercentageRef.on('value', (snapshot) => {
+        const brownPercentages = snapshot.val();
+        if (brownPercentages) {
+            const keys = Object.keys(brownPercentages);
+            keys.sort((a, b) => brownPercentages[b].timestamp - brownPercentages[a].timestamp);
+            const latest = brownPercentages[keys[0]];
+            brownPercentageDiv.textContent = `Brown Percentage: ${latest.brown_percentage.toFixed(2)}% (${latest.timestamp})`;
+        } else {
+            brownPercentageDiv.textContent = 'Brown Percentage: --';
+        }
+    });
 
     const nextEstimateSpan = document.getElementById('nextEstimate');
     const nextPhotoEstimateRef = database.ref('next_photo_estimate');
     nextPhotoEstimateRef.on('value', (snapshot) => {
         const estimates = snapshot.val();
         if (estimates) {
-            // Get the latest estimate by sorting keys by timestamp
             const keys = Object.keys(estimates);
-            keys.sort((a, b) => {
-                const ta = estimates[a].timestamp;
-                const tb = estimates[b].timestamp;
-                return ta < tb ? 1 : -1;
-            });
+            keys.sort((a, b) => estimates[b].timestamp - estimates[a].timestamp);
             const latest = estimates[keys[0]];
             nextEstimateSpan.textContent = `Next Estimated Picture: ${latest.next_estimated_time || '--'}`;
         } else {
@@ -117,31 +92,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const usersDataRef = database.ref('SensorsData');
+
     // Listen for temperature, humidity, and soil moisture sensors
     const humidityDiv = document.getElementById('humidity');
     const temperatureDiv = document.getElementById('temperature');
     const moistureDiv = document.getElementById('moisture');
     const natriumDiv = document.getElementById('natrium');
-    const phosporusDiv = document.getElementById('phosporus'); // update HTML id to 'phosphorus' if you want to match Arduino
+    const phosporusDiv = document.getElementById('phosporus');
     const kaliumDiv = document.getElementById('kalium');
-    const waterDiv = document.getElementById('water'); // or 'waterLevel' if that's your HTML id
+    const waterDiv = document.getElementById('waterlevel');
+    const wateranalogDiv = document.getElementById('wateranalog');
 
-    const usersDataRef = database.ref('SensorsData');
     usersDataRef.on('value', (snapshot) => {
         const users = snapshot.val();
         if (users) {
             const keys = Object.keys(users);
             const latest = users[keys[keys.length - 1]];
 
-            humidityDiv.textContent = `Humidity: ${latest.humidity !== undefined ? latest.humidity + '%' : '--'}`;
-            temperatureDiv.textContent = `Temperature: ${latest.temperature !== undefined ? latest.temperature + '°C' : '--'}`;
-            moistureDiv.textContent = `Soil Moisture: ${latest.moisture !== undefined ? latest.moisture + '%' : '--'}`;
+            humidityDiv.textContent = `Humidity: ${latest.humidity ?? '--'}%`;
+            temperatureDiv.textContent = `Temperature: ${latest.temperature ?? '--'}°C`;
+            moistureDiv.textContent = `Soil Moisture: ${latest.moisture ?? '--'}%`;
 
-            natriumDiv.textContent = `Natrium: ${latest.natrium !== undefined ? latest.natrium : '--'}`;
-            phosporusDiv.textContent = `Phosphorus: ${latest.phosphorus !== undefined ? latest.phosphorus : '--'}`; // match spelling
-            kaliumDiv.textContent = `Kalium: ${latest.kalium !== undefined ? latest.kalium : '--'}`;
+            natriumDiv.textContent = `Natrium: ${latest.natrium ?? '--'}`;
+            phosporusDiv.textContent = `Phosphorus: ${latest.phosphorus ?? '--'}`;
+            kaliumDiv.textContent = `Kalium: ${latest.kalium ?? '--'}`;
 
-            waterDiv.textContent = `Water Level: ${latest.waterlevel !== undefined ? latest.waterlevel : '--'}`;
+            waterDiv.textContent = `Water Level: ${latest.waterlevel ?? '--'}`;
+
+            wateranalogDiv.textContent = `Water Analog: ${latest.wateranalog ?? '--'}`;
         } else {
             humidityDiv.textContent = 'Humidity: --';
             temperatureDiv.textContent = 'Temperature: --';
@@ -152,9 +131,10 @@ document.addEventListener('DOMContentLoaded', () => {
             kaliumDiv.textContent = 'Kalium: --';
 
             waterDiv.textContent = 'Water Level: --';
+
+            wateranalogDiv.textContent = 'Water Analog: --';
         }
     });
-
 
     const waterLevelPercentageDiv = document.getElementById('waterLevelPercentage');
     const estimatedRefillDiv = document.getElementById('estimatedRefill');
@@ -165,29 +145,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = snapshot.val();
         if (data) {
             const keys = Object.keys(data);
-            keys.sort((a, b) => {
-                const ta = data[a].timestamp;
-                const tb = data[b].timestamp;
-                return ta < tb ? 1 : -1;
-            });
+            keys.sort((a, b) => data[b].timestamp - data[a].timestamp);
             const latest = data[keys[0]];
-            waterLevelPercentageDiv.textContent = `Water Level Percentage: ${latest.waterlevel_percentage !== undefined ? latest.waterlevel_percentage + '%' : '--'} (${latest.timestamp || '--'})`;
+            waterLevelPercentageDiv.textContent = `Water Level Percentage: ${latest.waterlevel_percentage ?? '--'}% (${latest.timestamp || '--'})`;
         } else {
             waterLevelPercentageDiv.textContent = 'Water Level Percentage: --';
         }
     });
-    
+
     // Listen for estimated refill time
     const estimatedRefillRef = database.ref('estimated_refill_time');
     estimatedRefillRef.on('value', (snapshot) => {
         const data = snapshot.val();
         if (data) {
             const keys = Object.keys(data);
-            keys.sort((a, b) => {
-                const ta = data[a].timestamp;
-                const tb = data[b].timestamp;
-                return ta < tb ? 1 : -1;
-            });
+            keys.sort((a, b) => data[b].timestamp - data[a].timestamp);
             const latest = data[keys[0]];
             if (latest.estimated_refill_time !== undefined) {
                 const totalMinutes = latest.estimated_refill_time;
@@ -203,39 +175,38 @@ document.addEventListener('DOMContentLoaded', () => {
             estimatedRefillDiv.textContent = 'Estimated Refill Time: --';
         }
     });
-    
+
     const pump1Div = document.getElementById('pump1');
     const pump2Div = document.getElementById('pump2');
     const pump3Div = document.getElementById('pump3');
     const lightStatusDiv = document.getElementById('lightStatus');
     const fanStatusDiv = document.getElementById('fanStatus');
 
-    // Listen for pump status
-    const pumpStatusRef = database.ref('pump_status');
-    pumpStatusRef.on('value', (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-            pump1Div.textContent = `Pump 1 Status: ${data.pump1 !== undefined ? data.pump1 : '--'}`;
-            pump2Div.textContent = `Pump 2 Status: ${data.pump2 !== undefined ? data.pump2 : '--'}`;
-            pump3Div.textContent = `Pump 3 Status: ${data.pump3 !== undefined ? data.pump3 : '--'}`;
+    usersDataRef.on('value', (snapshot) => {
+        const users = snapshot.val();
+        if (users) {
+            const keys = Object.keys(users);
+            const latest = users[keys[keys.length - 1]];
+
+            if (latest.relays) {
+                pump1Div.textContent = latest.relays.pump1 === "ON" ? "Pump 1: Active" : "Pump 1: Inactive";
+                pump2Div.textContent = latest.relays.pump2 === "ON" ? "Pump 2: Active" : "Pump 2: Inactive";
+                pump3Div.textContent = latest.relays.pump3 === "ON" ? "Pump 3: Active" : "Pump 3: Inactive";
+                lightStatusDiv.textContent = latest.relays.light === "ON" ? "Light: On" : "Light: Off";
+                fanStatusDiv.textContent = latest.relays.fan === "ON" ? "Fan: On" : "Fan: Off";
+            } else {
+                pump1Div.textContent = 'Pump 1: --';
+                pump2Div.textContent = 'Pump 2: --';
+                pump3Div.textContent = 'Pump 3: --';
+                lightStatusDiv.textContent = 'Light: --';
+                fanStatusDiv.textContent = 'Fan: --';
+            }
         } else {
-            pump1Div.textContent = 'Pump 1 Status: --';
-            pump2Div.textContent = 'Pump 2 Status: --';
-            pump3Div.textContent = 'Pump 3 Status: --';
+            pump1Div.textContent = 'Pump 1: --';
+            pump2Div.textContent = 'Pump 2: --';
+            pump3Div.textContent = 'Pump 3: --';
+            lightStatusDiv.textContent = 'Light: --';
+            fanStatusDiv.textContent = 'Fan: --';
         }
-    });
-
-    // Listen for light status
-    const lightStatusRef = database.ref('light_status');
-    lightStatusRef.on('value', (snapshot) => {
-        const status = snapshot.val();
-        lightStatusDiv.textContent = `Light Status: ${status !== undefined ? status : '--'}`;
-    });
-
-    // Listen for fan status
-    const fanStatusRef = database.ref('fan_status');
-    fanStatusRef.on('value', (snapshot) => {
-        const status = snapshot.val();
-        fanStatusDiv.textContent = `Fan Status: ${status !== undefined ? status : '--'}`;
     });
 });
