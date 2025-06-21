@@ -1,5 +1,10 @@
 ![Screenshot of the website](assets/Screenshot%202025-06-03%20213417.png)
 
+![Tree Icon](assets/tree-icon.png)
+### Attribution
+
+The tree icon used in this project is sourced from [Flaticon](https://www.flaticon.com/free-icon/tree-shape-of-straight-lines-like-a-computer-printed-circuit_40886?term=tree+circuit&page=1&position=3&origin=search&related_id=40886).
+
 # Hosting with Firebase
 
 This project uses [Firebase Hosting](https://firebase.google.com/products/hosting) to deploy and serve the website.

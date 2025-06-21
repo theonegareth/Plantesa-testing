@@ -35,7 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const photos = snapshot.val();
         if (photos) {
             const keys = Object.keys(photos);
-            keys.sort((a, b) => photos[b].timestamp - photos[a].timestamp);
+            // Use localeCompare for string timestamps
+            keys.sort((a, b) => photos[b].timestamp.localeCompare(photos[a].timestamp));
             const latest = photos[keys[0]];
             if (latest.labeled_photo_url) {
                 imgContainer.innerHTML = `
@@ -58,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const conditions = snapshot.val();
         if (conditions) {
             const keys = Object.keys(conditions);
-            keys.sort((a, b) => conditions[b].timestamp - conditions[a].timestamp);
+            keys.sort((a, b) => conditions[b].timestamp.localeCompare(conditions[a].timestamp));
             const latest = conditions[keys[0]];
             conditionDiv.textContent = `Condition: ${latest.predicted_condition} (${latest.timestamp})`;
         } else {
@@ -84,9 +85,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const estimates = snapshot.val();
         if (estimates) {
             const keys = Object.keys(estimates);
-            keys.sort((a, b) => estimates[b].timestamp - estimates[a].timestamp);
-            const latest = estimates[keys[0]];
+            keys.sort((a, b) => {
+            const ta = estimates[a].timestamp || '';
+            const tb = estimates[b].timestamp || '';
+            return tb.localeCompare(ta);
+            });
+            const latestKey = keys.find(k => estimates[k].timestamp);
+            const latest = latestKey ? estimates[latestKey] : null;
+            if (latest) {
             nextEstimateSpan.textContent = `Next Estimated Picture: ${latest.next_estimated_time || '--'}`;
+            } else {
+            nextEstimateSpan.textContent = 'Next Estimated Picture: --';
+            }
         } else {
             nextEstimateSpan.textContent = 'Next Estimated Picture: --';
         }
